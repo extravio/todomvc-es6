@@ -10,6 +10,13 @@ const tmp_event = (signal, model, root) => {
 	root.querySelectorAll('button.destroy').forEach((element, index) => {
 		element.addEventListener('click', signal('destroy', index))
 	});
+	root.querySelectorAll('input.new-todo').forEach((element, index) => {
+		element.addEventListener('keyup', (event) => { 
+			if (event.keyCode && event.keyCode === 13 && event.target.value.length) {
+				signal('new-todo', event.target.value)();
+			}
+		})
+	});
 }
 
 const update = (model, action, payload) => {
@@ -21,6 +28,7 @@ const update = (model, action, payload) => {
 			return { task: item.task, completed: payload };
 		});
 		case 'destroy': return model.filter((item, index) => index!==payload);
+		case 'new-todo': return [{ task: payload, completed: false }, ...model];
 		default: return model;           // if no action, return curent state.
 	  }
 };
@@ -28,6 +36,10 @@ const update = (model, action, payload) => {
 const view = (signal, model, root) => {
 	let html;
 	html = `
+		<header class="header">
+			<h1>todos</h1>
+			<input class="new-todo" placeholder="What needs to be done?" autofocus>
+		</header>
 		<!-- This section should be hidden by default and shown when there are todos -->
 		<section class="main">
 			<input id="toggle-all" class="toggle-all" type="checkbox" ${model.reduce((acc, cur) => acc && cur.completed, true) ? 'checked' : ''}>
