@@ -20,6 +20,29 @@ const tmp_event = (signal, model, root) => {
 	root.querySelectorAll('button.clear-completed').forEach((element, index) => {
 		element.addEventListener('click', signal('clear-completed', null))
 	});
+	root.querySelectorAll('ul.todo-list div.view').forEach((element, index) => {
+		element.addEventListener('dblclick', signal('edit', { index, editing: true }))
+	});
+	root.querySelectorAll('ul.todo-list input.edit').forEach((element, index) => {
+		element.addEventListener('blur', signal('edit', { index, editing: false }))
+	});
+	root.querySelectorAll('ul.todo-list input.edit').forEach((element, index) => {
+		element.addEventListener('keyup', (event) => { 
+			if (event.keyCode && event.keyCode === 27) {
+				signal('edit', { index, editing: false })();
+			}
+		})
+	});
+	root.querySelectorAll('ul.todo-list input.edit').forEach((element, index) => {
+		element.addEventListener('keyup', (event) => { 
+			if (event.keyCode && event.keyCode === 13) {
+				signal('update', { index, value: event.target.value })();
+			}
+		})
+	});
+
+	const focusElement = root.querySelector('ul.todo-list > li.editing > input.edit');
+	if (focusElement) focusElement.focus();
 }
 
 const update = (model, action, payload) => {
@@ -33,6 +56,10 @@ const update = (model, action, payload) => {
 		case 'destroy': return model.filter((item, index) => index!==payload);
 		case 'new-todo': return [{ task: payload, completed: false }, ...model];
 		case 'clear-completed': return model.filter((item) => !item.completed);
+		case 'edit':  return model.map((item, index) => (index===payload.index && payload.editing) ? { task: item.task, completed: item.completed, editing: true } : { task: item.task, completed: item.completed });
+		case 'update': return (payload.value.length) ? 
+										model.map((item, index) => (index===payload.index) ? { task: payload.value, completed: item.completed } : item)
+										: update(model, 'destroy', payload.index);
 		default: return model;           // if no action, return curent state.
 	  }
 };
@@ -50,11 +77,10 @@ const view = (signal, model, root) => {
 				<input id="toggle-all" class="toggle-all" type="checkbox" ${model.reduce((acc, cur) => acc && cur.completed, true) ? 'checked' : ''}>
 				${ model.length ? '<label for="toggle-all">Mark all as complete</label>' : '' }
 				<ul class="todo-list">
-					<!-- These are here just to show the structure of the list items -->
 					<!-- List items should get the class 'editing' when editing and 'completed' when marked as completed -->
 					${ model.map((item) => {
-						return `<li class="${item.completed ? 'completed' : ''}">
-											<div class="view">
+						return `<li class="${item.completed ? 'completed' : ''} ${item.editing ? 'editing' : ''}">
+											<div class="view" tabindex="0">
 												<input class="toggle" type="checkbox" ${item.completed ? 'checked' : ''}>
 												<label>${item.task}</label>
 												<button class="destroy"></button>
