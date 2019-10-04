@@ -61,13 +61,13 @@ export const header = () => `
 `;
 
 // The output should be sanitized to prevent XSS attacks but it's not the purpose of the project.
-export const main = (model) => `
+export const main = ({ todos }) => `
   <section class="main">
-    <input id="toggle-all" class="toggle-all" type="checkbox" ${model.reduce((acc, cur) => acc && cur.completed, true) ? 'checked' : ''}>
-    ${ model.length ? '<label for="toggle-all">Mark all as complete</label>' : '' }
+    <input id="toggle-all" class="toggle-all" type="checkbox" ${todos.reduce((acc, cur) => acc && cur.completed, true) ? 'checked' : ''}>
+    ${ todos.length ? '<label for="toggle-all">Mark all as complete</label>' : '' }
     <ul class="todo-list">
       <!-- List items should get the class 'editing' when editing and 'completed' when marked as completed -->
-      ${ model.map((item) => {
+      ${ todos.map((item) => {
         return `<li class="${item.completed ? 'completed' : ''} ${item.editing ? 'editing' : ''}">
                   <div class="view" tabindex="0">
                     <input class="toggle" type="checkbox" ${item.completed ? 'checked' : ''}>
@@ -81,10 +81,10 @@ export const main = (model) => `
   </section>
 `;
 
-export const footer = (model) => `
+export const footer = ({ todos }) => `
   <footer class="footer">
     <!-- This should be '0 items left' by default -->
-    <span class="todo-count"><strong>${ model.reduce((acc, cur) => acc + ((!cur.completed) ? 1 : 0), 0) }</strong> item left</span>
+    <span class="todo-count"><strong>${ todos.reduce((acc, cur) => acc + ((!cur.completed) ? 1 : 0), 0) }</strong> item left</span>
     <!-- Remove this if you don't implement routing -->
     <ul class="filters">
       <li>
@@ -107,8 +107,8 @@ export const view = (signal, model, root) => {
 	html = `
 		<section class="todoapp">
       ${ header() }
-      ${ model.length ? main(model, signal) : '' }
-      ${ model.length ? footer(model) : '' }
+      ${ model.todos.length ? main(model, signal) : '' }
+      ${ model.todos.length ? footer(model) : '' }
 		</section>`;
   root.innerHTML = html;
   attachEvents(signal, root);

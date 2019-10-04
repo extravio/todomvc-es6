@@ -1,20 +1,24 @@
 export const actions = {
 
-  toggle: (model, action, payload) => model.map((item, index) => { return (index===payload) ? { task: item.task, completed: !item.completed } : item }),
-    
-  toggleAll: (model, action, payload) => model.map((item, index) => { return { task: item.task, completed: payload }	}),
+  alterTodo: (model, todos) => {
+    return Object.assign({}, {...model }, { todos });
+  },
 
-  destroy: (model, action, payload) => model.filter((item, index) => index!==payload),
+  toggle: (model, action, payload) => actions.alterTodo(model, model.todos.map((item, index) => { return (index===payload) ? { task: item.task, completed: !item.completed } : item })),
 
-  newTodo: (model, action, payload) => [{ task: payload, completed: false }, ...model],
+  toggleAll: (model, action, payload) => actions.alterTodo(model, model.todos.map((item, index) => { return { task: item.task, completed: payload }	})),
 
-  clearCompleted: (model, action, payload) => model.filter((item) => !item.completed),
+  destroy: (model, action, payload) => actions.alterTodo(model, model.todos.filter((item, index) => index!==payload)),
 
-  edit: (model, action, payload) =>  model.map((item, index) => (index===payload.index && payload.editing) ? { task: item.task, completed: item.completed, editing: true } : { task: item.task, completed: item.completed }),
+  newTodo: (model, action, payload) => actions.alterTodo(model, [{ task: payload, completed: false }, ...model.todos]),
+  
+  clearCompleted: (model, action, payload) => actions.alterTodo(model, model.todos.filter((item) => !item.completed)),
+  
+  edit: (model, action, payload) => actions.alterTodo(model, model.todos.map((item, index) => (index===payload.index && payload.editing) ? { task: item.task, completed: item.completed, editing: true } : { task: item.task, completed: item.completed })),
 
-  save: (model, action, payload) => (payload.value.length) ? 
-										model.map((item, index) => (index===payload.index) ? { task: payload.value, completed: item.completed } : item)
-                    : update(model, 'destroy', payload.index),
+  save: (model, action, payload) => (payload.value.length) 
+                                    ? actions.alterTodo(model, model.todos.map((item, index) => (index===payload.index) ? { task: payload.value, completed: item.completed } : item))
+                                    : update(model, 'destroy', payload.index),
 }
 
 export const update = (model, action, payload) => (typeof actions[action] === 'function') ? actions[action](model, action, payload) : model;
