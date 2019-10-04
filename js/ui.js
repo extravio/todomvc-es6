@@ -50,7 +50,7 @@ const attachEvents = (signal, root) => {
 
   // focus on input.edit if available
 	const focusElement = root.querySelector('ul.todo-list > li.editing > input.edit');
-	if (focusElement) focusElement.focus();
+  if (focusElement) focusElement.focus();
 }
 
 export const header = () => `
@@ -61,13 +61,23 @@ export const header = () => `
 `;
 
 // The output should be sanitized to prevent XSS attacks but it's not the purpose of the project.
-export const main = ({ todos }) => `
+export const main = ({ todos, view }) => `
   <section class="main">
     <input id="toggle-all" class="toggle-all" type="checkbox" ${todos.reduce((acc, cur) => acc && cur.completed, true) ? 'checked' : ''}>
     ${ todos.length ? '<label for="toggle-all">Mark all as complete</label>' : '' }
     <ul class="todo-list">
       <!-- List items should get the class 'editing' when editing and 'completed' when marked as completed -->
-      ${ todos.map((item) => {
+      ${ todos
+        .filter((item) => {
+          if (view === 'active') {
+            return !item.completed;
+          } else if (view === 'completed') {
+            return item.completed;
+          } else {
+            return true;
+          }
+        })
+        .map((item) => {
         return `<li class="${item.completed ? 'completed' : ''} ${item.editing ? 'editing' : ''}">
                   <div class="view" tabindex="0">
                     <input class="toggle" type="checkbox" ${item.completed ? 'checked' : ''}>
@@ -81,20 +91,20 @@ export const main = ({ todos }) => `
   </section>
 `;
 
-export const footer = ({ todos }) => `
+export const footer = ({ todos, view }) => `
   <footer class="footer">
     <!-- This should be '0 items left' by default -->
     <span class="todo-count"><strong>${ todos.reduce((acc, cur) => acc + ((!cur.completed) ? 1 : 0), 0) }</strong> item left</span>
     <!-- Remove this if you don't implement routing -->
     <ul class="filters">
       <li>
-        <a class="selected" href="#/">All</a>
+        <a ${ view === 'all' ? 'class="selected"' : '' } href="#/">All</a>
       </li>
       <li>
-        <a href="#/active">Active</a>
+        <a ${ view === 'active' ? 'class="selected"' : '' } href="#/active">Active</a>
       </li>
       <li>
-        <a href="#/completed">Completed</a>
+        <a ${ view === 'completed' ? 'class="selected"' : '' } href="#/completed">Completed</a>
       </li>
     </ul>
     <!-- Hidden if no completed items are left ↓ -->

@@ -11,6 +11,7 @@ const mount = (model, update, view, elementId) => {
 		};
 	};
 	view(signal, model, root);
+	window.addEventListener("popstate", (event) => signal('select', event.currentTarget.location.hash)());
 };
 
 mount(model, update, view, 'app');
